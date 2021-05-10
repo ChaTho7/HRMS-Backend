@@ -6,7 +6,7 @@ import javax.persistence.*;
 
 @Data
 @Entity
-@Table(name = "JobPositions")
+@Table(name = "job_positions")
 public class JobPositon {
     @Id
     @GeneratedValue

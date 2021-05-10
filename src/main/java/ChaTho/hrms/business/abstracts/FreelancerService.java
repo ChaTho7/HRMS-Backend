@@ -1,9 +1,15 @@
 package ChaTho.hrms.business.abstracts;
 
+import ChaTho.hrms.core.utilities.results.Result;
 import ChaTho.hrms.entities.concretes.Freelancer;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FreelancerService {
-    List<Freelancer> getAll();
+    Result<Freelancer> add(Freelancer freelancer);
+    Result<Freelancer> delete(Freelancer freelancer);
+    Result<Freelancer> update(Freelancer freelancer);
+    Result<List<Freelancer>> getAll();
+    Result<Optional<Freelancer>> getById(Integer id);
 }
