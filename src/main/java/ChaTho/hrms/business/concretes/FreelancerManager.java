@@ -2,7 +2,9 @@ package ChaTho.hrms.business.concretes;
 
 import ChaTho.hrms.business.abstracts.FreelancerService;
 import ChaTho.hrms.business.consts.Messages;
+import ChaTho.hrms.business.microServices.mernis.IVQKPSPublicSoap12;
 import ChaTho.hrms.core.utilities.businessRules.BusinessRules;
+import ChaTho.hrms.core.utilities.regexes.Regex;
 import ChaTho.hrms.core.utilities.results.FailResult;
 import ChaTho.hrms.core.utilities.results.Result;
 import ChaTho.hrms.core.utilities.results.SuccessResult;
@@ -18,7 +20,7 @@ import java.util.Optional;
 @Service
 public class FreelancerManager implements FreelancerService {
 
-    private final FreelancerDao freelancerDao;
+    private FreelancerDao freelancerDao;
 
     @Autowired
     public FreelancerManager(FreelancerDao freelancerDao) {
@@ -27,11 +29,17 @@ public class FreelancerManager implements FreelancerService {
     }
 
     @Override
-    public Result<Freelancer> add(Freelancer freelancer) {
-        var result= BusinessRules.ruleChecker(duplicateNameChecker(freelancer.getName()));
+    public Result<Freelancer> add(Freelancer freelancer) throws Exception {
+        var result =
+                BusinessRules.ruleChecker(
+                        mernisValidation(freelancer),
+                        duplicateEmailChecker(freelancer.getEmail()),
+                        emailRegexChecker(freelancer.getEmail()),
+                        duplicateNationalityIdChecker(freelancer.getNationalityId())
+                );
 
-        if (result!=null){
-            for (var error:result) {
+        if (result != null) {
+            for (var error : result) {
                 return new FailResult<Freelancer>(error.getMessage());
             }
         }
@@ -53,36 +61,60 @@ public class FreelancerManager implements FreelancerService {
     }
 
     @Override
-    public Result<Optional<Freelancer>> getById(Integer id) {
-        return new SuccessResult<Optional<Freelancer>>(this.freelancerDao.findById(id),Messages.fetcedData);
+    public Result<Freelancer> getById(Integer id) {
+        return new SuccessResult<Freelancer>(this.freelancerDao.findById(id).get(), Messages.fetcedData);
     }
 
     @Override
     public Result<List<Freelancer>> getAll() {
-        var result= BusinessRules.ruleChecker(dateTimeChecker());
+        var result = BusinessRules.ruleChecker(dateTimeChecker());
 
-        if (result!=null){
-            for (var error:result) {
+        if (result != null) {
+            for (var error : result) {
                 return new FailResult<List<Freelancer>>(error.getMessage());
             }
         }
 
-        return new SuccessResult<List<Freelancer>>(this.freelancerDao.findAll(),Messages.fetcedDataList);
+        return new SuccessResult<List<Freelancer>>(this.freelancerDao.findAll(), Messages.fetcedDataList);
     }
 
-    private Result<Freelancer> duplicateNameChecker(String name){
-        var result=this.freelancerDao.findAll().stream().anyMatch(t-> t.getName().equals(name));
-        if (result){
-            return new FailResult<Freelancer>(Messages.duplicateName);
+    private Result<Freelancer> emailRegexChecker(String email) {
+        var result = Regex.validate(email);
+        if (result) {
+            return new SuccessResult<Freelancer>(Messages.success);
+        }
+        return new FailResult<Freelancer>(Messages.regexFailEmail);
+    }
+
+    private Result<Freelancer> duplicateEmailChecker(String email) {
+        var result = this.freelancerDao.findAll().stream().anyMatch(t -> t.getEmail().equals(email));
+        if (result) {
+            return new FailResult<Freelancer>(Messages.duplicateEmail);
         }
         return new SuccessResult<Freelancer>(Messages.success);
     }
 
-    private Result<Freelancer> dateTimeChecker(){
-        if(LocalDateTime.now().getHour()==19){
+    private Result<Freelancer> duplicateNationalityIdChecker(String nationalityId) {
+        var result = this.freelancerDao.findAll().stream().anyMatch(t -> t.getNationalityId().equals(nationalityId));
+        if (result) {
+            return new FailResult<Freelancer>(Messages.duplicateNationalityId);
+        }
+        return new SuccessResult<Freelancer>(Messages.success);
+    }
+
+    private Result<Freelancer> dateTimeChecker() {
+        if (LocalDateTime.now().getHour() == 19) {
             return new FailResult<Freelancer>("Date");
-        }else {
+        } else {
             return new SuccessResult<Freelancer>(Messages.success);
         }
+    }
+
+    private Result<Freelancer> mernisValidation(Freelancer freelancer) throws Exception {
+        var result = new IVQKPSPublicSoap12().TCKimlikNoDogrula(Long.parseLong(freelancer.getNationalityId()),freelancer.getName(),freelancer.getSurname(),Integer.parseInt(freelancer.getBirthYear()));
+        if (!result) {
+            return new FailResult<Freelancer>(Messages.failMernisIdentity);
+        }
+        return new SuccessResult<Freelancer>(Messages.success);
     }
 }

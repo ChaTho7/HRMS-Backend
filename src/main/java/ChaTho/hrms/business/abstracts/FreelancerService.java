@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FreelancerService {
-    Result<Freelancer> add(Freelancer freelancer);
+    Result<Freelancer> add(Freelancer freelancer) throws Exception;
     Result<Freelancer> delete(Freelancer freelancer);
     Result<Freelancer> update(Freelancer freelancer);
     Result<List<Freelancer>> getAll();
-    Result<Optional<Freelancer>> getById(Integer id);
+    Result<Freelancer> getById(Integer id);
 }

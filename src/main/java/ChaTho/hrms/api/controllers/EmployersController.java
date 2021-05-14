@@ -1,14 +1,13 @@
 package ChaTho.hrms.api.controllers;
 
 import ChaTho.hrms.business.abstracts.EmployerService;
-import ChaTho.hrms.core.utilities.results.Result;
-import ChaTho.hrms.entities.concretes.Employer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/employers")
@@ -23,7 +22,11 @@ public class EmployersController {
     }
 
     @GetMapping("/getall")
-    public Result<List<Employer>> getAll(){
-        return this.employerService.getAll();
+    public ResponseEntity getAll() {
+        var result = this.employerService.getAll();
+        if (result.isSuccess()) {
+            return new ResponseEntity(result, HttpStatus.OK);
+        }
+        return new ResponseEntity(result, HttpStatus.BAD_REQUEST);
     }
 }

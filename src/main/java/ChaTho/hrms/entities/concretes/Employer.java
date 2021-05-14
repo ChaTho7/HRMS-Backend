@@ -13,7 +13,7 @@ public class Employer {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "companyName")
+    @Column(name = "company_name")
     private String companyName;
 
     @Column(name = "website")
@@ -22,11 +22,13 @@ public class Employer {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "phoneNumber")
+    @Column(name = "phone_number")
     private String phoneNumber;
 
     @Column(name = "password")
     private String password;
+
+    public Employer(){}
 
     public Employer(int id, String companyName, String website, String email, String phoneNumber, String password) {
         super();

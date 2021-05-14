@@ -19,10 +19,10 @@ public class Freelancer {
     @Column(name = "surname")
     private String surname;
 
-    @Column(name = "nationalityId")
+    @Column(name = "nationality_id")
     private String nationalityId;
 
-    @Column(name = "birthYear")
+    @Column(name = "birth_year")
     private String birthYear;
 
     @Column(name = "email")

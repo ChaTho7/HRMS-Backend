@@ -2,6 +2,8 @@ package ChaTho.hrms.business.concretes;
 
 import ChaTho.hrms.business.abstracts.EmployerService;
 import ChaTho.hrms.business.consts.Messages;
+import ChaTho.hrms.core.utilities.businessRules.BusinessRules;
+import ChaTho.hrms.core.utilities.results.FailResult;
 import ChaTho.hrms.core.utilities.results.Result;
 import ChaTho.hrms.core.utilities.results.SuccessResult;
 import ChaTho.hrms.dataAccess.abstracts.EmployerDao;
@@ -24,6 +26,17 @@ public class EmployerManager implements EmployerService {
 
     @Override
     public Result<Employer> add(Employer employer) {
+        var result =
+                BusinessRules.ruleChecker(
+                        duplicateEmailChecker(employer.getEmail())
+                );
+
+        if (result != null) {
+            for (var error : result) {
+                return new FailResult<Employer>(error.getMessage());
+            }
+        }
+
         this.employerDao.save(employer);
         return new SuccessResult<Employer>(Messages.addedData);
     }
@@ -42,11 +55,19 @@ public class EmployerManager implements EmployerService {
 
     @Override
     public Result<List<Employer>> getAll() {
-        return new SuccessResult<List<Employer>>(this.employerDao.findAll(),Messages.fetcedDataList);
+        return new SuccessResult<List<Employer>>(this.employerDao.findAll(), Messages.fetcedDataList);
     }
 
     @Override
     public Result<Employer> getById(Integer id) {
         return new SuccessResult<Employer>(this.employerDao.getOne(id), Messages.fetcedData);
+    }
+
+    private Result<Employer> duplicateEmailChecker(String email) {
+        var result = this.employerDao.findAll().stream().anyMatch(t -> t.getEmail().equals(email));
+        if (result) {
+            return new FailResult<Employer>(Messages.duplicateEmail);
+        }
+        return new SuccessResult<Employer>(Messages.success);
     }
 }
